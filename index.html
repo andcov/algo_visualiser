@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="styles/index.css">
+        <link rel="stylesheet" href="styles/cell.css">
+        <link rel="stylesheet" href="styles/groups.css">
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
+    </head>
+    <body>
+        <div class="application">
+            <div class="options">
+                <h1>Shortest Distance Algorithms</h1>
+                <button onclick="change_start()" class="btn_start">Change Start Cell</button>
+                <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
+                <button onclick="clear_board()" class="btn_clear">Clear Board</button>
+                <button onclick="bfs()" class="btn_run">Run Algorithm</button>
+                <div>
+                    <h2>Solving Speed</h2>
+                    <input type="range" min="0" max="5000" value="5000" class="slider" id="solvind_speed">
+                </div>
+            </div>
+            <div class="board"
+                @mousedown="mouse_down"
+                @mouseup="mouse_up"
+            >
+                <div 
+                    v-for="cell in cells"
+                    class="cell"
+                    :class="{start_cell: cell.is_start, end_cell: cell.is_end, 
+                        wall_cell: cell.is_wall, visited_cell: cell.is_visited,
+                        solution_cell: cell.is_in_solution,
+                        group_full: cell.group.is_full, group_empty: cell.group.is_empty,
+                        group_top_left: cell.group.is_top_left, group_top_right: cell.group.is_top_right, 
+                        group_bottom_left: cell.group.is_bottom_left, 
+                        group_bottom_right: cell.group.is_bottom_right,
+                        group_top: cell.group.is_top, group_bottom: cell.group.is_bottom,
+                        group_left: cell.group.is_left, group_right: cell.group.is_right
+                    }"
+                    @click="clicked_cell(cell)"
+                    @mouseover="mouse_over(cell)"
+                >
+                </div>
+            </div>
+        </div>
+        <script src="index.js"></script>
+    </body>
+</html>

@@ -1,0 +1,46 @@
+.board .cell {
+  flex: 0 0 0;
+  max-height: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  min-width: 40px;
+  border-radius: 10px;
+  background-color: var(--empty-cell-color);
+  /* -webkit-transition: background-color 100ms linear;
+  -ms-transition: background-color 100ms linear;
+  transition: background-color 100ms linear; */
+  margin: 5px 5px;
+}
+
+.board .start_cell {
+  background-color: var(--start-cell-color) !important; 
+}
+
+.board .end_cell {
+  background-color: var(--end-cell-color) !important; 
+}
+
+.board .wall_cell {
+  background-color: var(--wall-cell-color) !important;
+}
+
+.board .visited_cell {
+  animation: visited_animation 0.6s;
+  background-color: var(--visited-cell-color);
+}
+
+.board .solution_cell {
+  animation: solution_animation 1s;
+  background-color: var(--solution-cell-color);
+}
+
+@keyframes solution_animation {
+  from {}
+  to {background-color: var(--solution-cell-color);}
+}
+
+@keyframes visited_animation {
+  0% {background-color: var(--empty-cell-color);}
+  50% {background-color: var(--intermediate-visited-cell-color);}
+  100% {background-color: var(--visited-cell-color);}
+}
