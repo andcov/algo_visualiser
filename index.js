@@ -5,10 +5,11 @@ const width = board_dim.width;
 const height = board_dim.height;
 const x_dim = Math.floor(width / 50);
 const y_dim = Math.floor(height / 50);
+const weight_factor = 4;
 
 let algorithm_timeout = 0;
 const solution_timeout = 100;
-const finish_timeout = 400;
+const finish_timeout = 600;
 
 let start_index = 0;
 let end_index = 0;
@@ -234,32 +235,20 @@ async function bfs() {
     if(current.cell_id === end_index) {
       break;
     }
-    
     const coord = convert_to_xy_coord(current.cell_id);
-    const up = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
-    const down = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
-    const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
-    const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
+    let potentials = [];
+    potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
+    potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
+    potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
+    potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
 
-    await delay(algorithm_timeout);
-    if(!up.is_visited && !up.is_wall) {
-      queue.push({ cell_id: up.id, pred: current });
-      up.is_visited = true;
-    }
-    await delay(algorithm_timeout);
-    if(!down.is_visited && !down.is_wall) {
-      queue.push({ cell_id: down.id, pred: current });
-      down.is_visited = true;
-    }
-    await delay(algorithm_timeout);
-    if(!left.is_visited && !left.is_wall) {
-      queue.push({ cell_id: left.id, pred: current });
-      left.is_visited = true;
-    }
-    await delay(algorithm_timeout);
-    if(!right.is_visited && !right.is_wall) {
-      queue.push({ cell_id: right.id, pred: current });
-      right.is_visited = true;
+    for(let i = 0; i < potentials.length; i++) {
+      let aux = potentials[i];
+      await delay(algorithm_timeout);
+      if(!aux.is_visited && !aux.is_wall) {
+        queue.push({ cell_id: aux.id, pred: current });
+        aux.is_visited = true;
+      }
     }
   }
 
@@ -307,30 +296,23 @@ async function dijkstra() {
         break;
       }
       const coord = convert_to_xy_coord(current.cell_id);
+      let potentials = [];
       const up = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
+      potentials.push(up);
       const down = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
+      potentials.push(down);
       const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
+      potentials.push(left);
       const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
-  
-      await delay(algorithm_timeout);
-      if(!up.is_visited && !up.is_wall) {
-        const add = (1/4) * up.is_light + 4 * up.is_heavy + 1 * (!up.is_light && !up.is_heavy);
-        heap.insert({cell_id: up.id, pred: current, len: current.len + add});
-      }
-      await delay(algorithm_timeout);
-      if(!down.is_visited && !down.is_wall) {
-        const add = (1/4) * down.is_light + 4 * down.is_heavy + 1 * (!down.is_light && !down.is_heavy);
-        heap.insert({cell_id: down.id, pred: current, len: current.len + add});
-      }
-      await delay(algorithm_timeout);
-      if(!left.is_visited && !left.is_wall) {
-        const add = (1/4) * left.is_light + 4 * left.is_heavy + 1 * (!left.is_light && !left.is_heavy);
-        heap.insert({cell_id: left.id, pred: current, len: current.len + add});
-      }
-      await delay(algorithm_timeout);
-      if(!right.is_visited && !right.is_wall) {
-        const add = (1/4) * right.is_light + 4 * right.is_heavy + 1 * (!right.is_light && !right.is_heavy);
-        heap.insert({cell_id: right.id, pred: current, len: current.len + add});
+      potentials.push(right);
+
+      for(let i = 0; i < potentials.length; i++) {
+        let aux = potentials[i];
+        await delay(algorithm_timeout);
+        if(!aux.is_visited && !aux.is_wall) {
+          const add = (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
+          heap.insert({cell_id: aux.id, pred: current, len: current.len + add});
+        }
       }
     }
   }
