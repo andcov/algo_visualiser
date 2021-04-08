@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="styles/groups.css">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
+		<title>Algo Visualiser</title>
     </head>
     <body>
         <div class="application">
@@ -14,7 +15,8 @@
                 <button onclick="change_start()" class="btn_start">Change Start Cell</button>
                 <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
                 <button onclick="clear_board()" class="btn_clear">Clear Board</button>
-                <button onclick="bfs()" class="btn_run">Run Algorithm</button>
+                <button onclick="bfs()" class="btn_run">Run BFS</button>
+                <button onclick="dijkstra()" class="btn_run">Run Dijkstra</button>
                 <div>
                     <h2>Solving Speed</h2>
                     <input type="range" min="0" max="5000" value="5000" class="slider" id="solvind_speed">
@@ -30,6 +32,7 @@
                     :class="{start_cell: cell.is_start, end_cell: cell.is_end, 
                         wall_cell: cell.is_wall, visited_cell: cell.is_visited,
                         solution_cell: cell.is_in_solution,
+                        light_cell: cell.is_light, heavy_cell: cell.is_heavy,
                         group_full: cell.group.is_full, group_empty: cell.group.is_empty,
                         group_top_left: cell.group.is_top_left, group_top_right: cell.group.is_top_right, 
                         group_bottom_left: cell.group.is_bottom_left, 

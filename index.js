@@ -31,6 +31,8 @@ function create_cells() {
         is_wall: false,
         is_in_solution: false,
         is_visited: false,
+        is_light: false,
+        is_heavy: false,
         group: {
           is_full: false,
           is_empty: false,
@@ -266,6 +268,69 @@ async function bfs() {
   stop_running();
 }
 
+async function dijkstra() {
+  if(container.is_running) {
+    return;
+  }
+
+  init_running();
+
+  let heap = new MinHeap();
+  heap.insert({
+    cell_id: start_index,
+    len: 0,
+  });
+  for(let i = 0; i < cells.length; i++) {
+    if(i != start_index && !cells[i].is_wall) {
+      heap.insert({
+        cell_id: i,
+        len: Infinity,
+      });
+    }
+  }
+
+  while(heap.getLength() > 0) {
+    let current = heap.remove();
+    console.log(current)
+    if(!cells[current.cell_id].is_visited) {
+      cells[current.cell_id].is_visited = true;
+      if(current.cell_id === end_index) {
+        break;
+      }
+      const coord = convert_linear_coord(current.cell_id);
+      const up = cells[convert_xy_coord(coord.x, coord.y + 1)];
+      const down = cells[convert_xy_coord(coord.x, coord.y - 1)];
+      const left = cells[convert_xy_coord(coord.x - 1, coord.y)];
+      const right = cells[convert_xy_coord(coord.x + 1, coord.y)];
+  
+      await delay(algorithm_timeout);
+      if(!up.is_visited && !up.is_wall) {
+        const add = (1/3) * up.is_light + 3 * up.is_heavy + 1 * (!up.is_light && !up.is_heavy);
+        heap.insert({cell_id: up.id, len: current.len + add});
+      }
+      await delay(algorithm_timeout);
+      if(!down.is_visited && !down.is_wall) {
+        const add = (1/3) * down.is_light + 3 * down.is_heavy + 1 * (!down.is_light && !down.is_heavy);
+        heap.insert({cell_id: down.id, len: current.len + add});
+      }
+      await delay(algorithm_timeout);
+      if(!left.is_visited && !left.is_wall) {
+        const add = (1/3) * left.is_light + 3 * left.is_heavy + 1 * (!left.is_light && !left.is_heavy);
+        heap.insert({cell_id: left.id, len: current.len + add});
+      }
+      await delay(algorithm_timeout);
+      if(!right.is_visited && !right.is_wall) {
+        const add = (1/3) * right.is_light + 3 * right.is_heavy + 1 * (!right.is_light && !right.is_heavy);
+        heap.insert({cell_id: right.id, len: current.len + add});
+      }
+    }
+  }
+
+  await delay(finish_timeout);
+
+  stop_running();
+}
+
 let cells = create_cells();
 
 var container = new Vue({
@@ -324,3 +389,90 @@ var container = new Vue({
     }
   }
 });
+
+class MinHeap {
+
+  constructor () {
+      /* Initialing the array heap and adding a dummy element at index 0 */
+      this.heap = [null]
+  }
+
+  getLength () {
+    return this.heap.length - 1
+  }
+
+  getMin () {
+      /* Accessing the min element at index 1 in the heap array */
+      return this.heap[1]
+  }
+  
+  insert (node) {
+
+      /* Inserting the new node at the end of the heap array */
+      this.heap.push(node)
+
+      /* Finding the correct position for the new node */
+
+      if (this.heap.length > 1) {
+          let current = this.heap.length - 1
+
+          /* Traversing up the parent node until the current node (current) is greater than the parent (current/2)*/
+          while (current > 1 && this.heap[Math.floor(current/2)].len > this.heap[current].len) {
+
+              /* Swapping the two nodes by using the ES6 destructuring syntax*/
+              [this.heap[Math.floor(current/2)], this.heap[current]] = [this.heap[current], this.heap[Math.floor(current/2)]]
+              current = Math.floor(current/2)
+          }
+      }
+  }
+  
+  remove() {
+      /* Smallest element is at the index 1 in the heap array */
+      let smallest = this.heap[1]
+
+      /* When there are more than two elements in the array, we put the right most element at the first position
+          and start comparing nodes with the child nodes
+      */
+      if (this.heap.length > 2) {
+          this.heap[1] = this.heap[this.heap.length-1]
+          this.heap.splice(this.heap.length - 1)
+
+          if (this.heap.length === 3) {
+              if (this.heap[1].len > this.heap[2].len) {
+                  [this.heap[1], this.heap[2]] = [this.heap[2], this.heap[1]]
+              }
+              return smallest
+          }
+
+          let current = 1
+          let leftChildIndex = current * 2
+          let rightChildIndex = current * 2 + 1
+
+          while (this.heap[leftChildIndex] &&
+                  this.heap[rightChildIndex] &&
+                  (this.heap[current].len > this.heap[leftChildIndex].len ||
+                      this.heap[current].len > this.heap[rightChildIndex].len)) {
+              if (this.heap[leftChildIndex].len < this.heap[rightChildIndex].len) {
+                  [this.heap[current], this.heap[leftChildIndex]] = [this.heap[leftChildIndex], this.heap[current]]
+                  current = leftChildIndex
+              } else {
+                  [this.heap[current], this.heap[rightChildIndex]] = [this.heap[rightChildIndex], this.heap[current]]
+                  current = rightChildIndex
+              }
+
+              leftChildIndex = current * 2
+              rightChildIndex = current * 2 + 1
+          }
+      }
+
+      /* If there are only two elements in the array, we directly splice out the first element */
+
+      else if (this.heap.length === 2) {
+          this.heap.splice(1, 1)
+      } else {
+          return null
+      }
+
+      return smallest
+  }
+}
