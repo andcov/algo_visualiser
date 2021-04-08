@@ -9,6 +9,8 @@
   --intermediate-visited-cell-color: deepskyblue;
   --visited-cell-color: #a1e4fa;
   --solution-cell-color: #ffef97;
+  --light-cell-color: #ffffff;
+  --heavy-cell-color: #000000;
 
   --btn-text-color: #3c3c3c;
 }

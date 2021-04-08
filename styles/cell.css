@@ -6,10 +6,11 @@
   min-width: 40px;
   border-radius: 10px;
   background-color: var(--empty-cell-color);
-  /* -webkit-transition: background-color 100ms linear;
-  -ms-transition: background-color 100ms linear;
-  transition: background-color 100ms linear; */
   margin: 5px 5px;
+  background-image: none;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 90%;
 }
 
 .board .start_cell {
@@ -22,6 +23,16 @@
 
 .board .wall_cell {
   background-color: var(--wall-cell-color) !important;
+}
+
+.board .light_cell {
+  /* background-color: var(--light-cell-color) !important; */
+  background-image: url("/assets/feather.svg");
+}
+
+.board .heavy_cell {
+  /* background-color: var(--heavy-cell-color) !important; */
+  background-image: url("/assets/weight.svg");
 }
 
 .board .visited_cell {

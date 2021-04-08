@@ -48,8 +48,8 @@ function create_cells() {
       });
   }
 
-  start_index = convert_xy_coord(Math.floor(x_dim / 4), Math.floor(y_dim / 2));
-  end_index = convert_xy_coord(Math.floor(3 * x_dim / 4), Math.floor(y_dim / 2));
+  start_index = convert_to_linear_coord(Math.floor(x_dim / 4), Math.floor(y_dim / 2));
+  end_index = convert_to_linear_coord(Math.floor(3 * x_dim / 4), Math.floor(y_dim / 2));
 
   cells[start_index].is_start = true;
   cells[end_index].is_end = true;
@@ -106,6 +106,8 @@ function clear_board() {
     delete_wall(cells[i]);
     cells[i].is_visited = false;
     cells[i].is_in_solution = false;
+    cells[i].is_heavy = false;
+    cells[i].is_light = false;
   }
 }
 
@@ -124,7 +126,7 @@ function delete_wall(cell) {
 }
 
 function get_wall_neighbours(cell) {
-  const coord = convert_linear_coord(cell.id);
+  const coord = convert_to_xy_coord(cell.id);
   let result = {
     top: null,
     bottom: null,
@@ -132,10 +134,10 @@ function get_wall_neighbours(cell) {
     right: null,
     cnt: 0,
   };
-  const top = cells[convert_xy_coord(coord.x, coord.y - 1)];
-  const bottom = cells[convert_xy_coord(coord.x, coord.y + 1)];
-  const left = cells[convert_xy_coord(coord.x - 1, coord.y)];
-  const right = cells[convert_xy_coord(coord.x + 1, coord.y)];
+  const top = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
+  const bottom = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
+  const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
+  const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
   if(top !== cell && top.is_wall) {
     result.top = top; 
     result.cnt += 1;
@@ -168,7 +170,7 @@ function change_end() {
   }
 }
 
-function convert_xy_coord(x, y) {
+function convert_to_linear_coord(x, y) {
   let mod_x = x;
   let mod_y = y;
   if(mod_x >= x_dim) {
@@ -186,7 +188,7 @@ function convert_xy_coord(x, y) {
   return x_dim * mod_y + mod_x;
 }
 
-function convert_linear_coord(id) {
+function convert_to_xy_coord(id) {
   if(id < 0) {
     return { x: 0, y: 0 };
   } else if (id > cells.length) {
@@ -219,48 +221,53 @@ async function bfs() {
 
   init_running();
 
-  let queue = [{ cell: cells[start_index], pred: NaN }];
+  let queue = [{
+    cell_id: start_index,
+    pred: NaN
+  }];
   cells[start_index].is_visited = true;
 
-  let current_cell;
+  let current;
 
   while(queue.length > 0) {
-    current_cell = queue.shift();
-    if(current_cell.cell === cells[end_index]) {
+    current = queue.shift();
+    if(current.cell_id === end_index) {
       break;
     }
-    const coord = convert_linear_coord(current_cell.cell.id);
-    const up = cells[convert_xy_coord(coord.x, coord.y + 1)];
-    const down = cells[convert_xy_coord(coord.x, coord.y - 1)];
-    const left = cells[convert_xy_coord(coord.x - 1, coord.y)];
-    const right = cells[convert_xy_coord(coord.x + 1, coord.y)];
+    
+    const coord = convert_to_xy_coord(current.cell_id);
+    const up = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
+    const down = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
+    const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
+    const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
 
     await delay(algorithm_timeout);
     if(!up.is_visited && !up.is_wall) {
-      queue.push({ cell: up, pred: current_cell });
+      queue.push({ cell_id: up.id, pred: current });
       up.is_visited = true;
     }
     await delay(algorithm_timeout);
     if(!down.is_visited && !down.is_wall) {
-      queue.push({ cell: down, pred: current_cell });
+      queue.push({ cell_id: down.id, pred: current });
       down.is_visited = true;
     }
     await delay(algorithm_timeout);
     if(!left.is_visited && !left.is_wall) {
-      queue.push({ cell: left, pred: current_cell });
+      queue.push({ cell_id: left.id, pred: current });
       left.is_visited = true;
     }
     await delay(algorithm_timeout);
     if(!right.is_visited && !right.is_wall) {
-      queue.push({ cell: right, pred: current_cell });
+      queue.push({ cell_id: right.id, pred: current });
       right.is_visited = true;
     }
   }
-  current_cell = current_cell.pred;
-  while(current_cell.pred) {
+
+  current = current.pred;
+  while(current.pred) {
     await delay(solution_timeout);
-    current_cell.cell.is_in_solution = true;
-    current_cell = current_cell.pred;
+    cells[current.cell_id].is_in_solution = true;
+    current = current.pred;
   }
 
   await delay(finish_timeout);
@@ -278,52 +285,61 @@ async function dijkstra() {
   let heap = new MinHeap();
   heap.insert({
     cell_id: start_index,
+    pred: null,
     len: 0,
   });
   for(let i = 0; i < cells.length; i++) {
     if(i != start_index && !cells[i].is_wall) {
       heap.insert({
         cell_id: i,
+        pred: null,
         len: Infinity,
       });
     }
   }
 
+  let current;
   while(heap.getLength() > 0) {
-    let current = heap.remove();
-    console.log(current)
+    current = heap.remove();
     if(!cells[current.cell_id].is_visited) {
       cells[current.cell_id].is_visited = true;
       if(current.cell_id === end_index) {
         break;
       }
-      const coord = convert_linear_coord(current.cell_id);
-      const up = cells[convert_xy_coord(coord.x, coord.y + 1)];
-      const down = cells[convert_xy_coord(coord.x, coord.y - 1)];
-      const left = cells[convert_xy_coord(coord.x - 1, coord.y)];
-      const right = cells[convert_xy_coord(coord.x + 1, coord.y)];
+      const coord = convert_to_xy_coord(current.cell_id);
+      const up = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
+      const down = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
+      const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
+      const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
   
       await delay(algorithm_timeout);
       if(!up.is_visited && !up.is_wall) {
-        const add = (1/3) * up.is_light + 3 * up.is_heavy + 1 * (!up.is_light && !up.is_heavy);
-        heap.insert({cell_id: up.id, len: current.len + add});
+        const add = (1/4) * up.is_light + 4 * up.is_heavy + 1 * (!up.is_light && !up.is_heavy);
+        heap.insert({cell_id: up.id, pred: current, len: current.len + add});
       }
       await delay(algorithm_timeout);
       if(!down.is_visited && !down.is_wall) {
-        const add = (1/3) * down.is_light + 3 * down.is_heavy + 1 * (!down.is_light && !down.is_heavy);
-        heap.insert({cell_id: down.id, len: current.len + add});
+        const add = (1/4) * down.is_light + 4 * down.is_heavy + 1 * (!down.is_light && !down.is_heavy);
+        heap.insert({cell_id: down.id, pred: current, len: current.len + add});
       }
       await delay(algorithm_timeout);
       if(!left.is_visited && !left.is_wall) {
-        const add = (1/3) * left.is_light + 3 * left.is_heavy + 1 * (!left.is_light && !left.is_heavy);
-        heap.insert({cell_id: left.id, len: current.len + add});
+        const add = (1/4) * left.is_light + 4 * left.is_heavy + 1 * (!left.is_light && !left.is_heavy);
+        heap.insert({cell_id: left.id, pred: current, len: current.len + add});
       }
       await delay(algorithm_timeout);
       if(!right.is_visited && !right.is_wall) {
-        const add = (1/3) * right.is_light + 3 * right.is_heavy + 1 * (!right.is_light && !right.is_heavy);
-        heap.insert({cell_id: right.id, len: current.len + add});
+        const add = (1/4) * right.is_light + 4 * right.is_heavy + 1 * (!right.is_light && !right.is_heavy);
+        heap.insert({cell_id: right.id, pred: current, len: current.len + add});
       }
     }
+  }
+
+  current = current.pred;
+  while(current.pred) {
+    await delay(solution_timeout);
+    cells[current.cell_id].is_in_solution = true;
+    current = current.pred;
   }
 
   await delay(finish_timeout);
@@ -333,11 +349,27 @@ async function dijkstra() {
 
 let cells = create_cells();
 
+document.addEventListener('keydown', (e) => {
+  if(e.code === "KeyH") {
+    container.is_placing_heavy = true;
+  }
+  if(e.code === "KeyL") {
+    container.is_placing_light = true;
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  container.is_placing_heavy = false;
+  container.is_placing_light = false;
+});
+
 var container = new Vue({
   el: '.board',
   data: {
     cells: cells,
     is_placing_walls: false,
+    is_placing_heavy: false,
+    is_placing_light: false,
     is_changing_start: false,
     is_changing_end: false,
     is_running: false,
@@ -372,11 +404,27 @@ var container = new Vue({
         end_index = cell.id;
         this.is_changing_end = false;
       } else if (!cell.is_start && !cell.is_end && !this.is_changing_start && !this.is_changing_end) {
-        cell.is_wall = !cell.is_wall;
-        if(!cell.is_wall) {
-          delete_wall(cell);
+        if(this.is_placing_heavy) {
+          if(!cell.is_wall){
+            cell.is_heavy = !cell.is_heavy;
+            if(cell.is_heavy && cell.is_light) {
+              cell.is_light = false;
+            }
+          }
+        } else if(this.is_placing_light) {
+          if(!cell.is_wall){
+            cell.is_light = !cell.is_light;
+            if(cell.is_heavy && cell.is_light) {
+              cell.is_heavy = false;
+            }
+          }
+        } else {
+          cell.is_wall = !cell.is_wall;
+          if (!cell.is_wall) {
+            delete_wall(cell);
+          }
+          update_board_walls();
         }
-        update_board_walls();
       }
     },
     mouse_down: function() {
@@ -391,88 +439,71 @@ var container = new Vue({
 });
 
 class MinHeap {
-
   constructor () {
-      /* Initialing the array heap and adding a dummy element at index 0 */
-      this.heap = [null]
+    this.heap = [null];
   }
 
   getLength () {
-    return this.heap.length - 1
+    return this.heap.length - 1;
   }
 
   getMin () {
-      /* Accessing the min element at index 1 in the heap array */
-      return this.heap[1]
+    return this.heap[1];
   }
   
   insert (node) {
+    this.heap.push(node);
 
-      /* Inserting the new node at the end of the heap array */
-      this.heap.push(node)
-
-      /* Finding the correct position for the new node */
-
-      if (this.heap.length > 1) {
-          let current = this.heap.length - 1
-
-          /* Traversing up the parent node until the current node (current) is greater than the parent (current/2)*/
-          while (current > 1 && this.heap[Math.floor(current/2)].len > this.heap[current].len) {
-
-              /* Swapping the two nodes by using the ES6 destructuring syntax*/
-              [this.heap[Math.floor(current/2)], this.heap[current]] = [this.heap[current], this.heap[Math.floor(current/2)]]
-              current = Math.floor(current/2)
-          }
+    if (this.heap.length > 1) {
+      let current = this.heap.length - 1;
+      while (current > 1 && this.heap[Math.floor(current/2)].len > this.heap[current].len) {
+        [this.heap[Math.floor(current/2)], this.heap[current]] = [this.heap[current], this.heap[Math.floor(current/2)]];
+        current = Math.floor(current/2);
       }
+    }
   }
   
   remove() {
-      /* Smallest element is at the index 1 in the heap array */
-      let smallest = this.heap[1]
+    let smallest = this.heap[1];
 
-      /* When there are more than two elements in the array, we put the right most element at the first position
-          and start comparing nodes with the child nodes
-      */
-      if (this.heap.length > 2) {
-          this.heap[1] = this.heap[this.heap.length-1]
-          this.heap.splice(this.heap.length - 1)
+    if (this.heap.length > 2) {
+      this.heap[1] = this.heap[this.heap.length-1];
+      this.heap.splice(this.heap.length - 1);
 
-          if (this.heap.length === 3) {
-              if (this.heap[1].len > this.heap[2].len) {
-                  [this.heap[1], this.heap[2]] = [this.heap[2], this.heap[1]]
-              }
-              return smallest
-          }
-
-          let current = 1
-          let leftChildIndex = current * 2
-          let rightChildIndex = current * 2 + 1
-
-          while (this.heap[leftChildIndex] &&
-                  this.heap[rightChildIndex] &&
-                  (this.heap[current].len > this.heap[leftChildIndex].len ||
-                      this.heap[current].len > this.heap[rightChildIndex].len)) {
-              if (this.heap[leftChildIndex].len < this.heap[rightChildIndex].len) {
-                  [this.heap[current], this.heap[leftChildIndex]] = [this.heap[leftChildIndex], this.heap[current]]
-                  current = leftChildIndex
-              } else {
-                  [this.heap[current], this.heap[rightChildIndex]] = [this.heap[rightChildIndex], this.heap[current]]
-                  current = rightChildIndex
-              }
-
-              leftChildIndex = current * 2
-              rightChildIndex = current * 2 + 1
-          }
+      if (this.heap.length === 3) {
+        if (this.heap[1].len > this.heap[2].len) {
+          [this.heap[1], this.heap[2]] = [this.heap[2], this.heap[1]];
+        }
+        return smallest;
       }
 
-      /* If there are only two elements in the array, we directly splice out the first element */
+      let current = 1;
+      let leftChildIndex = current * 2;
+      let rightChildIndex = current * 2 + 1;
 
-      else if (this.heap.length === 2) {
-          this.heap.splice(1, 1)
-      } else {
-          return null
+      while (this.heap[leftChildIndex] &&
+            this.heap[rightChildIndex] &&
+            (this.heap[current].len > this.heap[leftChildIndex].len ||
+                this.heap[current].len > this.heap[rightChildIndex].len)) {
+        if (this.heap[leftChildIndex].len < this.heap[rightChildIndex].len) {
+          [this.heap[current], this.heap[leftChildIndex]] = [this.heap[leftChildIndex], this.heap[current]];
+          current = leftChildIndex;
+        } else {
+          [this.heap[current], this.heap[rightChildIndex]] = [this.heap[rightChildIndex], this.heap[current]];
+          current = rightChildIndex;
+        }
+
+        leftChildIndex = current * 2;
+        rightChildIndex = current * 2 + 1;
       }
+    }
 
-      return smallest
+    else if (this.heap.length === 2) {
+      this.heap.splice(1, 1);
+    } else {
+      return null;
+    }
+
+    return smallest;
   }
 }
