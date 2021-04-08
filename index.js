@@ -21,7 +21,7 @@ slider.oninput = function() {
 
 function create_cells() {
     const cell_cnt = x_dim * y_dim;
-  console.log(`H: ${height} W: ${width} CellCnt: ${cell_cnt}`);
+  // console.log(`H: ${height} W: ${width} CellCnt: ${cell_cnt}`);
 
   let cells = [];
   for(let i = 0; i < cell_cnt; i++) {
