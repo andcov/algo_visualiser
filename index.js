@@ -345,6 +345,10 @@ document.addEventListener('keyup', (e) => {
   container.is_placing_light = false;
 });
 
+window.addEventListener("resize", () => {
+  alert("If you resize the window, the cell grid will look wanky.");
+});
+
 var container = new Vue({
   el: '.board',
   data: {
@@ -404,6 +408,9 @@ var container = new Vue({
           cell.is_wall = !cell.is_wall;
           if (!cell.is_wall) {
             delete_wall(cell);
+          } else {
+            cell.is_light = false;
+            cell.is_heavy = false;
           }
           update_board_walls();
         }
