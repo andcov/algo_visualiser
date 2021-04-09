@@ -1,10 +1,9 @@
-const board_dim = document.getElementsByClassName("board")[0].getBoundingClientRect();
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-const width = board_dim.width;
-const height = board_dim.height;
-const x_dim = Math.floor(width / 50);
-const y_dim = Math.floor(height / 50);
+let width = document.getElementsByClassName("board")[0].getBoundingClientRect().width;
+let height = document.getElementsByClassName("board")[0].getBoundingClientRect().height;
+let x_dim = Math.floor(width / 50);
+let y_dim = Math.floor(height / 50);
 const weight_factor = 4;
 
 let algorithm_timeout = 0;
@@ -20,7 +19,11 @@ slider.oninput = function() {
 }
 
 function create_cells() {
-    const cell_cnt = x_dim * y_dim;
+  width = document.getElementsByClassName("board")[0].getBoundingClientRect().width;
+  height = document.getElementsByClassName("board")[0].getBoundingClientRect().height;
+  x_dim = Math.floor(width / 50);
+  y_dim = Math.floor(height / 50);
+  const cell_cnt = x_dim * y_dim;
   // console.log(`H: ${height} W: ${width} CellCnt: ${cell_cnt}`);
 
   let cells = [];
@@ -346,7 +349,8 @@ document.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener("resize", () => {
-  alert("If you resize the window, the cell grid will look wanky.");
+  cells = create_cells();
+  container.cells = cells;
 });
 
 var container = new Vue({
