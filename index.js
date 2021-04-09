@@ -7,16 +7,16 @@ let y_dim = Math.floor(height / 50);
 const weight_factor = 4;
 
 let algorithm_timeout = 0;
-const solution_timeout = 100;
+let max_algorithm_timeout = 5000;
+const solution_timeout = 70;
 const finish_timeout = 600;
 
 let start_index = 0;
 let end_index = 0;
 
-var slider = document.getElementById("solvind_speed");
-slider.oninput = function() {
-  algorithm_timeout = (5000 - this.value) / 100;
-}
+// set solving speed for slider
+document.getElementById("solving_speed").setAttribute("max", max_algorithm_timeout);
+document.getElementById("solving_speed").setAttribute("value", Math.floor(max_algorithm_timeout));
 
 function create_cells() {
   width = document.getElementsByClassName("board")[0].getBoundingClientRect().width;
@@ -103,7 +103,7 @@ function update_board_walls() {
 }
 
 function clear_board() {
-  if(container.is_running) {
+  if(board.is_running) {
     return;
   }
   for (let i = 0; i < cells.length; i++) {
@@ -163,14 +163,14 @@ function get_wall_neighbours(cell) {
 }
 
 function change_start() {
-  if(!container.is_running){
-    container.is_changing_start = true;
+  if(!board.is_running){
+    board.is_changing_start = true;
   }
 }
 
 function change_end() {
-  if(!container.is_running){
-    container.is_changing_end = true;
+  if(!board.is_running){
+    board.is_changing_end = true;
   }
 }
 
@@ -203,7 +203,11 @@ function convert_to_xy_coord(id) {
 }
 
 function init_running() {
-  container.is_running = true;
+  board.is_running = true;
+
+  options.path_cost = 0;
+  options.visited_percentage = 0;
+  options.operations_cnt = 0;
 
   for (let i = 0; i < cells.length; i++) {
     cells[i].is_visited = false;
@@ -215,30 +219,26 @@ function stop_running() {
   for (let i = 0; i < cells.length; i++) {
     cells[i].is_visited = false;
   } 
-  container.is_running = false;
+  board.is_running = false;
 }
 
-async function bfs() {
-  if(container.is_running) {
-    return;
-  }
-
+function reachable() {
   init_running();
 
-  let queue = [{
-    cell_id: start_index,
-    pred: NaN
-  }];
-  cells[start_index].is_visited = true;
+  let visited = [];
+  for(let i = 0; i < cells.length; i++) {
+    visited[i] = false;
+  }
+
+  let queue = [start_index];
+  visited[start_index].is_visited = true;
 
   let current;
-
+  let reachable_cnt = 0;
   while(queue.length > 0) {
+    reachable_cnt++;
     current = queue.shift();
-    if(current.cell_id === end_index) {
-      break;
-    }
-    const coord = convert_to_xy_coord(current.cell_id);
+    const coord = convert_to_xy_coord(current);
     let potentials = [];
     potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
     potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
@@ -247,10 +247,65 @@ async function bfs() {
 
     for(let i = 0; i < potentials.length; i++) {
       let aux = potentials[i];
-      await delay(algorithm_timeout);
-      if(!aux.is_visited && !aux.is_wall) {
-        queue.push({ cell_id: aux.id, pred: current });
-        aux.is_visited = true;
+      if(!visited[aux.id] && !aux.is_wall) {
+        queue.push(aux.id);
+        visited[aux.id] = true;
+      }
+    }
+  }
+
+  stop_running();
+
+  return reachable_cnt;
+}
+
+async function bfs() {
+  if(board.is_running) {
+    return;
+  }
+
+  let reachable_cnt = reachable();
+
+  init_running();
+
+  options.algorithm = "BFS";
+
+  let queue = [{
+    cell_id: start_index,
+    pred: NaN
+  }];
+
+  let current;
+  let visited_cnt = 0;
+
+  while(queue.length > 0) {
+    current = queue.shift();
+    if(!cells[current.cell_id].is_visited) {
+      cells[current.cell_id].is_visited = true;
+
+      visited_cnt++;
+      options.visited_percentage = Math.floor(visited_cnt / reachable_cnt * 100);
+      options.operations_cnt++;
+
+      if(current.cell_id === end_index) {
+        break;
+      }
+
+      const coord = convert_to_xy_coord(current.cell_id);
+      let potentials = [];
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
+      potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
+      potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
+
+      options.operations_cnt += potentials.length;
+
+      for(let i = 0; i < potentials.length; i++) {
+        await delay(algorithm_timeout);
+        let aux = potentials[i];
+        if(!aux.is_visited && !aux.is_wall) {
+          queue.push({ cell_id: aux.id, pred: current });
+        }
       }
     }
   }
@@ -258,6 +313,9 @@ async function bfs() {
   current = current.pred;
   while(current.pred) {
     await delay(solution_timeout);
+    const cell = cells[current.cell_id];
+    const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
+    options.path_cost += add
     cells[current.cell_id].is_in_solution = true;
     current = current.pred;
   }
@@ -268,11 +326,15 @@ async function bfs() {
 }
 
 async function dijkstra() {
-  if(container.is_running) {
+  if(board.is_running) {
     return;
   }
 
+  let reachable_cnt = reachable();
+
   init_running();
+
+  options.algorithm = "Dijkstra";
 
   let heap = new MinHeap();
   heap.insert({
@@ -291,28 +353,32 @@ async function dijkstra() {
   }
 
   let current;
+  let visited_cnt = 0;
   while(heap.getLength() > 0) {
     current = heap.remove();
     if(!cells[current.cell_id].is_visited) {
       cells[current.cell_id].is_visited = true;
+
+      visited_cnt++;
+      options.visited_percentage = Math.floor(visited_cnt / reachable_cnt * 100);
+      options.operations_cnt++;
+
       if(current.cell_id === end_index) {
         break;
       }
       const coord = convert_to_xy_coord(current.cell_id);
       let potentials = [];
-      const up = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
-      potentials.push(up);
-      const down = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
-      potentials.push(down);
-      const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
-      potentials.push(left);
-      const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
-      potentials.push(right);
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
+      potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
+      potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
 
       for(let i = 0; i < potentials.length; i++) {
-        let aux = potentials[i];
         await delay(algorithm_timeout);
+        let aux = potentials[i];
         if(!aux.is_visited && !aux.is_wall) {
+          options.operations_cnt += Math.floor(Math.log(heap.getLength()));
+
           const add = (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
           heap.insert({cell_id: aux.id, pred: current, len: current.len + add});
         }
@@ -323,6 +389,9 @@ async function dijkstra() {
   current = current.pred;
   while(current.pred) {
     await delay(solution_timeout);
+    const cell = cells[current.cell_id];
+    const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
+    options.path_cost += add;
     cells[current.cell_id].is_in_solution = true;
     current = current.pred;
   }
@@ -336,24 +405,24 @@ let cells = create_cells();
 
 document.addEventListener('keydown', (e) => {
   if(e.code === "KeyH") {
-    container.is_placing_heavy = true;
+    board.is_placing_heavy = true;
   }
   if(e.code === "KeyL") {
-    container.is_placing_light = true;
+    board.is_placing_light = true;
   }
 });
 
 document.addEventListener('keyup', (e) => {
-  container.is_placing_heavy = false;
-  container.is_placing_light = false;
+  board.is_placing_heavy = false;
+  board.is_placing_light = false;
 });
 
 window.addEventListener("resize", () => {
   cells = create_cells();
-  container.cells = cells;
+  board.cells = cells;
 });
 
-var container = new Vue({
+var board = new Vue({
   el: '.board',
   data: {
     cells: cells,
@@ -380,16 +449,18 @@ var container = new Vue({
       }
       
       if (this.is_changing_start && !cell.is_end && !cell.is_wall) {
-        for (let i = 0; i < cells.length; i++) {
-          cells[i].is_start = false;
+        for(let i = 0; i < cells.length; i++) {
+          cells[i].is_in_solution = false;
         }
+        cells[start_index].is_start = false;
         cell.is_start = true;
         start_index = cell.id;
         this.is_changing_start = false;
       } else if (this.is_changing_end && !cell.is_start && !cell.is_wall) {
-        for (let i = 0; i < cells.length; i++) {
-          cells[i].is_end = false;
+        for(let i = 0; i < cells.length; i++) {
+          cells[i].is_in_solution = false;
         }
+        cells[end_index].is_end = false;
         cell.is_end = true;
         end_index = cell.id;
         this.is_changing_end = false;
@@ -427,6 +498,21 @@ var container = new Vue({
     },
     mouse_up: function() {
       this.is_placing_walls = false;
+    }
+  }
+});
+
+var options = new Vue({
+  el: '.options',
+  data: {
+    visited_percentage: 0,
+    path_cost: 0,
+    operations_cnt: 0,
+    algorithm: "",
+  },
+  methods: {
+    changed_solving_speed: function() {
+      algorithm_timeout = (max_algorithm_timeout - document.getElementById("solving_speed").value) / 100;
     }
   }
 });

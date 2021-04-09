@@ -12,8 +12,6 @@
         <div class="application">
             <div class="options">
                 <h1>Shortest Distance Algorithms</h1>
-                <button onclick="change_start()" class="btn_start">Change Start Cell</button>
-                <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
                 <div class="dropdown">
                     <button class="dropbtn">Algorithms</button>
                     <div class="dropdown-content">
@@ -21,12 +19,19 @@
                         <button onclick="dijkstra()" class="btn_run">Run Dijkstra</button>
                     </div>
                   </div>
-                
-                <button onclick="clear_board()" class="btn_clear">Clear Board</button>
-                <div>
-                    <h2>Solving Speed</h2>
-                    <input type="range" min="0" max="5000" value="5000" class="slider" id="solvind_speed">
+                <div class="solving_speed_div">
+                    <h3>Solving Speed</h3>
+                    <input type="range" max="5000" min="0" id="solving_speed" @input="changed_solving_speed">
                 </div>
+                <div class="stats">
+                    <p id="stat_algorithm"> Algorithm: {{ algorithm }} </p>
+                    <p id="stat_visited_percentage"> Visited percentage: {{ visited_percentage }}% </p>
+                    <p id="stat_path_cost"> Path Cost: {{ path_cost }}</p>
+                    <p id="stat_operations"> Operation: {{ operations_cnt }}</p>
+                </div>
+                <button onclick="change_start()" class="btn_start">Change Start Cell</button>
+                <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
+                <button onclick="clear_board()" class="btn_clear">Clear Board</button>
             </div>
             <div class="board"
                 @mousedown="mouse_down"

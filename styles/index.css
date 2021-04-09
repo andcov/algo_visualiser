@@ -1,5 +1,6 @@
 :root {
   --main-background-color: #C4C4C4;
+  --second-background-color: #f0f0f0;
 
   --empty-cell-color: #EEEEEE;
   --wall-cell-color: #C4C4C4;
@@ -44,10 +45,11 @@ html, body {
   margin: 0 0;
   font-family: "Source Sans Pro", sans-serif;
 }
-.options h2 {
+.options h3 {
   text-align: center;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
   font-family: "Source Sans Pro", sans-serif;
+  color: var(--btn-text-color);
 }
 
 .options button {
@@ -64,7 +66,7 @@ html, body {
   letter-spacing: 0.05em;
   transition: all 330ms;
   color: var(--btn-text-color);
-  background-color: #f0f0f0;
+  background-color: var(--second-background-color);
 
   justify-content: center;
   text-align: center;
@@ -97,35 +99,15 @@ html, body {
   justify-content: flex-start;
 }
 
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  margin: 0 0;
-  border-radius: 5px;  
-  background: #f0f0f0;
-  outline: none;
-  opacity: 1;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%; 
-  background: #4CAF50;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #4CAF50;
-  cursor: pointer;
+.options .solving_speed_div {
+  border-radius: 30px;
+  background-color: var(--second-background-color);
+  width: 80%;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .dropdown {
@@ -143,12 +125,27 @@ html, body {
   position: absolute;
   left: 10%;
   background-color: #ffffff;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px #00000033;
   z-index: 1;
 }
 .dropdown-content button {
   margin: 10px;
 }
 
+.dropdown:hover .dropdown-content {
+  display: block;
+}
 
-.dropdown:hover .dropdown-content {display: block;}
+.options .stats {
+  border-radius: 30px;
+  background-color: var(--second-background-color);
+  width: 80%;
+}
+
+.options .stats p {
+  text-align: center;
+  margin: 17px 0;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 600;
+  color: var(--btn-text-color);
+}
