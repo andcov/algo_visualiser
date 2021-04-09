@@ -355,7 +355,9 @@ async function dijkstra() {
   let current;
   let visited_cnt = 0;
   while(heap.getLength() > 0) {
-    current = heap.remove();
+    let aux = heap.remove();
+    options.operations_cnt += aux.operations;
+    current = aux.val;
     if(!cells[current.cell_id].is_visited) {
       cells[current.cell_id].is_visited = true;
 
@@ -380,7 +382,7 @@ async function dijkstra() {
           options.operations_cnt += Math.floor(Math.log(heap.getLength()));
 
           const add = (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
-          heap.insert({cell_id: aux.id, pred: current, len: current.len + add});
+          options.operations_cnt += heap.insert({cell_id: aux.id, pred: current, len: current.len + add});
         }
       }
     }
@@ -532,18 +534,23 @@ class MinHeap {
   
   insert (node) {
     this.heap.push(node);
+    let operations_cnt = 0;
 
     if (this.heap.length > 1) {
       let current = this.heap.length - 1;
       while (current > 1 && this.heap[Math.floor(current/2)].len > this.heap[current].len) {
         [this.heap[Math.floor(current/2)], this.heap[current]] = [this.heap[current], this.heap[Math.floor(current/2)]];
         current = Math.floor(current/2);
+        operations_cnt++;
       }
     }
+
+    return operations_cnt;
   }
   
   remove() {
     let smallest = this.heap[1];
+    let operations_cnt = 0;
 
     if (this.heap.length > 2) {
       this.heap[1] = this.heap[this.heap.length-1];
@@ -567,9 +574,11 @@ class MinHeap {
         if (this.heap[leftChildIndex].len < this.heap[rightChildIndex].len) {
           [this.heap[current], this.heap[leftChildIndex]] = [this.heap[leftChildIndex], this.heap[current]];
           current = leftChildIndex;
+          operations_cnt++;
         } else {
           [this.heap[current], this.heap[rightChildIndex]] = [this.heap[rightChildIndex], this.heap[current]];
           current = rightChildIndex;
+          operations_cnt++;
         }
 
         leftChildIndex = current * 2;
@@ -578,11 +587,15 @@ class MinHeap {
     }
 
     else if (this.heap.length === 2) {
+      operations_cnt++;
       this.heap.splice(1, 1);
     } else {
       return null;
     }
 
-    return smallest;
+    return {
+      val: smallest,
+      operations: operations_cnt,
+    };
   }
 }
