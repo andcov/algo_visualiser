@@ -1,0 +1,107 @@
+.options h1 {
+  text-align: center;
+  margin: var(--spacing) 0 0 0;
+  font-family: "Source Sans Pro", sans-serif;
+}
+.options h3 {
+  text-align: center;
+  font-family: "Source Sans Pro", sans-serif;
+  color: var(--btn-text-color);
+}
+
+.options button {
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 900;
+  padding: 1.25rem 2rem;
+  font-size: medium;
+  border: none;
+  border-radius: 30px;
+  width: 80%;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 330ms;
+  color: var(--btn-text-color);
+  background-color: var(--second-background-color);
+  text-align: center;
+  margin: var(--spacing) 0 0 0;
+}
+
+.options button:hover {
+  background-color: #dcdcdc;
+}
+
+.options .btn_start {
+  background-color: #71e671;
+}
+
+.options .btn_start:hover {
+  background-color: var(--start-cell-color);
+}
+
+.options .btn_end {
+  background-color: #e86363;
+}
+
+.options .btn_end:hover {
+  background-color: var(--end-cell-color);
+}
+
+.options .solving_speed_div {
+  border-radius: 30px;
+  background-color: var(--second-background-color);
+  width: 80%;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: var(--spacing) 0 0 0;
+}
+
+.options .dropdown {
+  width: 100%;
+  position: relative;
+  display: inline-block;
+  text-align: center;
+}
+
+.options .dropdown-content {
+  display: none;
+  border-radius: 30px;
+  max-width: 80%;
+  position: absolute;
+  left: 10%;
+  background-color: #ffffff;
+  box-shadow: 0px 8px 16px 0px #00000033;
+  padding-bottom: var(--spacing);
+  z-index: 1;
+}
+
+.options .dropdown-content button {
+  margin: var(--spacing) 0 0 0;
+}
+
+.options .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.options .stats {
+  border-radius: 30px;
+  background-color: var(--second-background-color);
+  width: 80%;
+  margin: var(--spacing) 0 0 0;
+}
+
+.options .stats p {
+  text-align: center;
+  margin: 17px 0;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 600;
+  color: var(--btn-text-color);
+}
+
+.options #spacer {
+  height: var(--spacing);
+  width: 80%;
+}

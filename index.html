@@ -4,6 +4,7 @@
         <link rel="stylesheet" href="styles/index.css">
         <link rel="stylesheet" href="styles/cell.css">
         <link rel="stylesheet" href="styles/groups.css">
+        <link rel="stylesheet" href="styles/options.css">
         <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
         <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 		<title>Algo Visualiser</title>
@@ -32,6 +33,7 @@
                 <button onclick="change_start()" class="btn_start">Change Start Cell</button>
                 <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
                 <button onclick="clear_board()" class="btn_clear">Clear Board</button>
+                <div id="spacer"><p></p></div>
             </div>
             <div class="board"
                 @mousedown="mouse_down"
