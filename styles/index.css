@@ -57,3 +57,61 @@ html, body {
   flex-flow: row wrap;
   justify-content: flex-start;
 }
+
+h1, h2, h3 {
+  text-align: center;
+  font-family: "Source Sans Pro", sans-serif;
+}
+
+p, li {
+  font-weight: 600;
+  font-family: "Source Sans Pro", sans-serif;
+  color: var(--btn-text-color);
+  line-height: 1.6;
+}
+
+button {
+  background-color: var(--second-background-color);
+  border: none;
+  border-radius: 30px;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 900;
+  padding: 0.75rem 1.5rem;
+  font-size: medium;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 330ms;
+  color: var(--btn-text-color);
+  background-color: var(--second-background-color);
+  text-align: center;
+}
+
+code {
+  background-color: #eee;
+  border: 1px solid #999;
+  padding: 2px;
+}
+
+#help {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  border-radius: 20px;
+  width: 500px;
+
+  background-color: #d7d7d7;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 2;
+}
+
+#help p {
+  margin: 10px 30px;
+}

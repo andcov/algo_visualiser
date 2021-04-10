@@ -11,6 +11,17 @@
     </head>
     <body>
         <div class="application">
+            <div id="help">
+                <h2>Instructions</h2>
+                <ul>
+                    <li>Add walls by clicking a cell or dragging over the board.</li>
+                    <li>Make a cell heavy be pressing <code>H</code> and clicking on it.</li>
+                    <li>Make a cell light be pressing <code>L</code> and clicking on it.</li>
+                    <li>After modifing the board, choose an algorithm from the Algorithms Tab to run it.</li>
+                </ul>
+                <button onclick="close_instructions()">Close</button>
+                <p>Find out more about this project in <a href="https://andcov.dev/posts/algo-vis" target="_blank">this blog post</a>.</p>
+            </div>
             <div class="options">
                 <h1>Shortest Distance Algorithms</h1>
                 <div class="dropdown">
@@ -33,6 +44,7 @@
                 <button onclick="change_start()" class="btn_start">Change Start Cell</button>
                 <button onclick="change_end()" class="btn_end">Change Destination Cell</button>
                 <button onclick="clear_board()" class="btn_clear">Clear Board</button>
+                <button onclick="open_instructions()" class="btn_help"></button>
                 <div id="spacer"><p></p></div>
             </div>
             <div class="board"

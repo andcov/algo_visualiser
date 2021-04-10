@@ -1,29 +1,13 @@
 .options h1 {
-  text-align: center;
   margin: var(--spacing) 0 0 0;
-  font-family: "Source Sans Pro", sans-serif;
 }
 .options h3 {
-  text-align: center;
-  font-family: "Source Sans Pro", sans-serif;
   color: var(--btn-text-color);
 }
 
 .options button {
-  font-family: "Source Sans Pro", sans-serif;
-  font-weight: 900;
   padding: 1.25rem 2rem;
-  font-size: medium;
-  border: none;
-  border-radius: 30px;
   width: 80%;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 330ms;
-  color: var(--btn-text-color);
-  background-color: var(--second-background-color);
-  text-align: center;
   margin: var(--spacing) 0 0 0;
 }
 
@@ -99,6 +83,19 @@
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 600;
   color: var(--btn-text-color);
+}
+
+.options .btn_help {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 80%;
+  background-image: url("/assets/help.svg");
+  padding: 0 0;
+  border-radius: 50%;
+  min-width: 50px;
+  max-width: 50px;
+  min-height: 50px;
+  max-height: 50px;
 }
 
 .options #spacer {

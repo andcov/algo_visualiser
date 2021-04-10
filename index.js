@@ -424,6 +424,16 @@ window.addEventListener("resize", () => {
   board.cells = cells;
 });
 
+function close_instructions() {
+  let help = document.getElementById("help");
+  help.style.display = "none";
+}
+
+function open_instructions() {
+  let help = document.getElementById("help");
+  help.style.display = "flex";
+}
+
 var board = new Vue({
   el: '.board',
   data: {
