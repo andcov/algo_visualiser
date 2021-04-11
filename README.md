@@ -4,4 +4,5 @@ Online application for visualising well-known algorithms.
 
 **Supported algorithms:**
 * Shortest distance
-	* BFS
+	* Breadth First Search (BFS)
+	* Dijkstra's Algorithm

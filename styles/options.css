@@ -2,7 +2,12 @@
   margin: var(--spacing) 0 0 0;
 }
 .options h3 {
+  margin: var(--spacing) 0 0 0;
   color: var(--btn-text-color);
+}
+
+.options input {
+  margin: calc(var(--spacing) / 2) 0 var(--spacing) 0;
 }
 
 .options button {
