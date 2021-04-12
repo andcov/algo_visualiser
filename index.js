@@ -203,7 +203,20 @@ function convert_to_xy_coord(id) {
 }
 
 function init_running() {
-  board.is_running = true;
+  if(board.is_running) {
+    return false;
+  }
+
+  let init = init_bfs();
+  if(!init.reached_end) {
+    let element = document.getElementById("no_path"); 
+    element.classList.remove("animation");
+    void element.offsetWidth; 
+    element.classList.add("animation");
+    return false;
+  }
+
+  board.reachable_cells = init.reachable_cnt;
 
   options.path_cost = 0;
   options.visited_percentage = 0;
@@ -213,6 +226,9 @@ function init_running() {
     cells[i].is_visited = false;
     cells[i].is_in_solution = false;
   }
+
+  board.is_running = true;
+  return true;
 }
 
 function stop_running() {
@@ -222,8 +238,8 @@ function stop_running() {
   board.is_running = false;
 }
 
-function reachable() {
-  init_running();
+function init_bfs() {
+  board.is_running = true;
 
   let visited = [];
   for(let i = 0; i < cells.length; i++) {
@@ -231,42 +247,48 @@ function reachable() {
   }
 
   let queue = [start_index];
-  visited[start_index].is_visited = true;
 
   let current;
   let reachable_cnt = 0;
+  let reached_end = false;
   while(queue.length > 0) {
-    reachable_cnt++;
     current = queue.shift();
-    const coord = convert_to_xy_coord(current);
-    let potentials = [];
-    potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
-    potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
-    potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
-    potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
+    if(!visited[current]){
+      reachable_cnt++;
+      visited[current] = true;
 
-    for(let i = 0; i < potentials.length; i++) {
-      let aux = potentials[i];
-      if(!visited[aux.id] && !aux.is_wall) {
-        queue.push(aux.id);
-        visited[aux.id] = true;
+      if(current == end_index) {
+        reached_end = true;
+      } else {
+        let coord = convert_to_xy_coord(current);
+        let potentials = [];
+        potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
+        potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
+        potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
+        potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
+
+        for(let i = 0; i < potentials.length; i++) {
+          let aux = potentials[i];
+          if(!visited[aux.id] && !aux.is_wall) {
+            queue.push(aux.id);
+          }
+        }
       }
     }
   }
 
-  stop_running();
+  board.is_running = false;
 
-  return reachable_cnt;
+  return {
+    reachable_cnt: reachable_cnt,
+    reached_end: reached_end,
+  };
 }
 
 async function bfs() {
-  if(board.is_running) {
+  if(!init_running()) {
     return;
   }
-
-  let reachable_cnt = reachable();
-
-  init_running();
 
   options.algorithm = "BFS";
 
@@ -284,7 +306,7 @@ async function bfs() {
       cells[current.cell_id].is_visited = true;
 
       visited_cnt++;
-      options.visited_percentage = Math.floor(visited_cnt / reachable_cnt * 100);
+      options.visited_percentage = Math.floor(visited_cnt / board.reachable_cells * 100);
       options.operations_cnt++;
 
       if(current.cell_id === end_index) {
@@ -326,13 +348,9 @@ async function bfs() {
 }
 
 async function dijkstra() {
-  if(board.is_running) {
+  if(!init_running()) {
     return;
   }
-
-  let reachable_cnt = reachable();
-
-  init_running();
 
   options.algorithm = "Dijkstra";
 
@@ -362,7 +380,7 @@ async function dijkstra() {
       cells[current.cell_id].is_visited = true;
 
       visited_cnt++;
-      options.visited_percentage = Math.floor(visited_cnt / reachable_cnt * 100);
+      options.visited_percentage = Math.floor(visited_cnt / board.reachable_cells * 100);
       options.operations_cnt++;
 
       if(current.cell_id === end_index) {
@@ -444,6 +462,7 @@ var board = new Vue({
     is_changing_start: false,
     is_changing_end: false,
     is_running: false,
+    reachable_cells: 0,
   },
   methods: {
     mouse_over: function(cell) {
