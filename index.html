@@ -11,13 +11,14 @@
     </head>
     <body>
         <div class="application">
-            <div id="help" style="display: none;">
+            <div id="help">
                 <h2>Instructions</h2>
                 <ul>
                     <li>Add walls by clicking a cell or dragging over the board.</li>
                     <li>Make a cell heavy be pressing <code>H</code> and clicking on it.</li>
                     <li>Make a cell light be pressing <code>L</code> and clicking on it.</li>
                     <li>After modifing the board, choose an algorithm from the Algorithms Tab to run it.</li>
+                    <li>To find out more about the current algorithm, click its name in the Stats Tab.</li>
                 </ul>
                 <button onclick="close_instructions()">Close</button>
                 <p>Find out more about this project in <a href="https://andcov.dev/posts/algo-vis" target="_blank">this blog post</a>.</p>
@@ -40,7 +41,7 @@
                     <input type="range" max="5000" min="0" id="solving_speed" @input="changed_solving_speed">
                 </div>
                 <div class="stats">
-                    <p id="stat_algorithm"> Algorithm: {{ algorithm }} </p>
+                    <p id="stat_algorithm"> Algorithm: <a v-bind:href="algorithm_link" target="_blank">{{ algorithm }}</a> </p>
                     <p id="stat_visited_percentage"> Visited percentage: {{ visited_percentage }}% </p>
                     <p id="stat_path_cost"> Path Cost: {{ path_cost }}</p>
                     <p id="stat_operations"> Operations: {{ operations_cnt }}</p>

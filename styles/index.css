@@ -70,6 +70,10 @@ p, li {
   line-height: 1.6;
 }
 
+a {
+  color: rgb(85, 38, 194);
+}
+
 button {
   background-color: var(--second-background-color);
   border: none;

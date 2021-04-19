@@ -291,6 +291,7 @@ async function bfs() {
   }
 
   options.algorithm = "BFS";
+  options.algorithm_link = "https://andcov.dev";
 
   let queue = [{
     cell_id: start_index,
@@ -322,8 +323,8 @@ async function bfs() {
 
       options.operations_cnt += potentials.length;
 
+      await delay(algorithm_timeout);
       for(let i = 0; i < potentials.length; i++) {
-        await delay(algorithm_timeout);
         let aux = potentials[i];
         if(!aux.is_visited && !aux.is_wall) {
           queue.push({ cell_id: aux.id, pred: current });
@@ -353,6 +354,7 @@ async function dijkstra() {
   }
 
   options.algorithm = "Dijkstra";
+  options.algorithm_link = "https://andcov.dev";
 
   let heap = new MinHeap();
   heap.insert({
@@ -393,12 +395,10 @@ async function dijkstra() {
       potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
       potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
 
+      await delay(algorithm_timeout);
       for(let i = 0; i < potentials.length; i++) {
-        await delay(algorithm_timeout);
         let aux = potentials[i];
         if(!aux.is_visited && !aux.is_wall) {
-          options.operations_cnt += Math.floor(Math.log(heap.getLength()));
-
           const add = (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
           options.operations_cnt += heap.insert({cell_id: aux.id, pred: current, len: current.len + add});
         }
@@ -427,6 +427,8 @@ async function bellman_ford() {
   }
 
   options.algorithm = "Bellman Ford";
+  options.algorithm_link = "https://andcov.dev";
+  options.visited_percentage = 100;
 
   let dist_0 = create_array(cells.length);
   let dist_1 = create_array(cells.length); 
@@ -437,11 +439,19 @@ async function bellman_ford() {
     dist_0[i] = Infinity;
     dist_1[i] = Infinity
     pred[i] = null;
+
+    cells[i].is_visited = true;
   }
   dist_0[start_index] = 0;
   dist_1[start_index] = 0;
 
+  let changed = true;
+
   for(let i = 1; i < cells.length; i++) {
+    if(!changed) {
+      break;
+    }
+    changed = false;
     for(let v = 0; v < cells.length; v++) {
       let current_cost;
       if(i % 2 == 0){
@@ -458,6 +468,8 @@ async function bellman_ford() {
       potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
       potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
 
+      options.operations_cnt += potentials.length;
+
       for(let j = 0; j < potentials.length; j++){
         const aux = potentials[j];
         if(!aux.is_wall){
@@ -471,10 +483,13 @@ async function bellman_ford() {
           if(aux_cost < current_cost) {
             current_cost = aux_cost;
             current_pred = aux.id;
+            changed = true;
+            aux.is_visited = false;
             await delay(algorithm_timeout);
             aux.is_visited = true;
           }
         }
+
       }
 
       if(i % 2 == 0){
@@ -487,8 +502,12 @@ async function bellman_ford() {
   }
 
   let current = pred[end_index];
-  while(current) {
-    cells[current].is_in_solution = true;
+  while(current != start_index) {
+    await delay(solution_timeout);
+    const cell = cells[current];
+    const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
+    options.path_cost += add;
+    cell.is_in_solution = true;
     current = pred[current];
   }
 
@@ -508,8 +527,6 @@ function create_array(length) {
 
   return arr;
 }
-
-let cells = create_cells();
 
 document.addEventListener('keydown', (e) => {
   if(e.code === "KeyH") {
@@ -539,6 +556,8 @@ function open_instructions() {
   let help = document.getElementById("help");
   help.style.display = "flex";
 }
+
+let cells = create_cells();
 
 var board = new Vue({
   el: '.board',
@@ -628,6 +647,7 @@ var options = new Vue({
     path_cost: 0,
     operations_cnt: 0,
     algorithm: "",
+    algorithm_link: "",
   },
   methods: {
     changed_solving_speed: function() {
