@@ -421,6 +421,79 @@ async function dijkstra() {
   stop_running();
 }
 
+async function bellman_ford() {
+  if(!init_running()) {
+    return;
+  }
+
+  options.algorithm = "Bellman Ford";
+
+  let dist = create_array(cells.length, cells.length);
+  let pred = new Array(cells.length);
+
+  for(let i = 0; i < cells.length; i++) {
+    dist[0][i] = Infinity;
+    pred[i] = null;
+  }
+  dist[0][start_index] = 0;
+
+  for(let i = 1; i < cells.length; i++) {
+    for(let v = 0; v < cells.length; v++) {
+      let current_cost = dist[i-1][v];
+      let current_pred = pred[v];
+      let aux_cell_id = v;
+
+      const coord = convert_to_xy_coord(v);
+      let potentials = [];
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y + 1)]); // up
+      potentials.push(cells[convert_to_linear_coord(coord.x, coord.y - 1)]); // down
+      potentials.push(cells[convert_to_linear_coord(coord.x - 1, coord.y)]); // left
+      potentials.push(cells[convert_to_linear_coord(coord.x + 1, coord.y)]); // right
+
+      for(let j = 0; j < potentials.length; j++){
+        const aux = potentials[j];
+        if(!aux.is_wall){
+          const aux_cost = dist[i-1][aux.id] + (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
+
+          if(aux_cost < current_cost) {
+            current_cost = aux_cost;
+            current_pred = aux.id;
+            aux_cell_id = aux.id;
+          }
+        }
+      }
+
+      dist[i][v] = current_cost;
+      pred[v] = current_pred;
+      if(aux_cell_id != v) {
+        cells[aux_cell_id].is_visited = true;
+      }
+    }
+  }
+
+  let current = pred[end_index];
+  while(current) {
+    cells[current].is_in_solution = true;
+    current = pred[current];
+  }
+
+  await delay(finish_timeout);
+
+  stop_running();
+}
+
+function create_array(length) {
+  var arr = new Array(length || 0),
+      i = length;
+
+  if (arguments.length > 1) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      while(i--) arr[length-1 - i] = create_array.apply(this, args);
+  }
+
+  return arr;
+}
+
 let cells = create_cells();
 
 document.addEventListener('keydown', (e) => {

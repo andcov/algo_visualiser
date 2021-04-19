@@ -11,7 +11,7 @@
     </head>
     <body>
         <div class="application">
-            <div id="help">
+            <div id="help" style="display: none;">
                 <h2>Instructions</h2>
                 <ul>
                     <li>Add walls by clicking a cell or dragging over the board.</li>
@@ -32,6 +32,7 @@
                     <div class="dropdown-content">
                         <button onclick="bfs()" class="btn_run">Run BFS</button>
                         <button onclick="dijkstra()" class="btn_run">Run Dijkstra</button>
+                        <button onclick="bellman_ford()" class="btn_run">Run Bellman Ford</button>
                     </div>
                   </div>
                 <div class="solving_speed_div">
