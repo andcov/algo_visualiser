@@ -428,20 +428,28 @@ async function bellman_ford() {
 
   options.algorithm = "Bellman Ford";
 
-  let dist = create_array(cells.length, cells.length);
+  let dist_0 = create_array(cells.length);
+  let dist_1 = create_array(cells.length); 
+
   let pred = new Array(cells.length);
 
   for(let i = 0; i < cells.length; i++) {
-    dist[0][i] = Infinity;
+    dist_0[i] = Infinity;
+    dist_1[i] = Infinity
     pred[i] = null;
   }
-  dist[0][start_index] = 0;
+  dist_0[start_index] = 0;
+  dist_1[start_index] = 0;
 
   for(let i = 1; i < cells.length; i++) {
     for(let v = 0; v < cells.length; v++) {
-      let current_cost = dist[i-1][v];
+      let current_cost;
+      if(i % 2 == 0){
+        current_cost = dist_1[v]; 
+      }else {
+        current_cost = dist_0[v];
+      }
       let current_pred = pred[v];
-      let aux_cell_id = v;
 
       const coord = convert_to_xy_coord(v);
       let potentials = [];
@@ -453,21 +461,28 @@ async function bellman_ford() {
       for(let j = 0; j < potentials.length; j++){
         const aux = potentials[j];
         if(!aux.is_wall){
-          const aux_cost = dist[i-1][aux.id] + (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
+          let aux_cost;
+          if(i % 2 == 0){
+            aux_cost = dist_1[aux.id] + (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
+          }else {
+            aux_cost = dist_0[aux.id] + (1 / weight_factor) * aux.is_light + weight_factor * aux.is_heavy + 1 * (!aux.is_light && !aux.is_heavy);
+          }
 
           if(aux_cost < current_cost) {
             current_cost = aux_cost;
             current_pred = aux.id;
-            aux_cell_id = aux.id;
+            await delay(algorithm_timeout);
+            aux.is_visited = true;
           }
         }
       }
 
-      dist[i][v] = current_cost;
-      pred[v] = current_pred;
-      if(aux_cell_id != v) {
-        cells[aux_cell_id].is_visited = true;
+      if(i % 2 == 0){
+        dist_0[v] = current_cost; 
+      }else {
+        dist_1[v] = current_cost;
       }
+      pred[v] = current_pred;
     }
   }
 
