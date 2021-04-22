@@ -659,22 +659,25 @@ var board = new Vue({
         return;
       }
       
-      if (this.is_changing_start && !cell.is_end && !cell.is_wall) {
+      if(((this.is_changing_start && !cell.is_end) || (this.is_changing_end && !cell.is_start)) && !cell.is_wall) {
         for(let i = 0; i < cells.length; i++) {
           cells[i].is_in_solution = false;
+          if(!cells[i].is_wall) {
+            delete_groups(cells[i]);
+          }
         }
-        cells[start_index].is_start = false;
-        cell.is_start = true;
-        start_index = cell.id;
+        if(this.is_changing_start) {
+          cells[start_index].is_start = false;
+          cell.is_start = true;
+          start_index = cell.id;
+        } else {
+          cells[end_index].is_end = false;
+          cell.is_end = true;
+          end_index = cell.id;
+        }
         this.is_changing_start = false;
-      } else if (this.is_changing_end && !cell.is_start && !cell.is_wall) {
-        for(let i = 0; i < cells.length; i++) {
-          cells[i].is_in_solution = false;
-        }
-        cells[end_index].is_end = false;
-        cell.is_end = true;
-        end_index = cell.id;
         this.is_changing_end = false;
+        update_board_paths();
       } else if (!cell.is_start && !cell.is_end && !this.is_changing_start && !this.is_changing_end) {
         if(this.is_placing_heavy) {
           if(!cell.is_wall){
