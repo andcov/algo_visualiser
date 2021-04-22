@@ -61,13 +61,47 @@ function create_cells() {
   return cells;
 }
 
-function update_board_walls() {
+function update_board_paths() {
   for(let i = 0; i < cells.length; i++) {
     let cell = cells[i];
     if(cell.is_wall){
-      delete_wall(cell);
-      cell.is_wall = true;
+      delete_groups(cell);
       const neighbours = get_wall_neighbours(cell);
+      if(neighbours.cnt == 0) {
+        cell.group.is_empty = true;
+      } else if(neighbours.cnt >= 3) {
+        cell.group.is_full = true;
+      } else if(neighbours.cnt == 1) {
+        if(neighbours.bottom) {
+          cell.group.is_top = true;
+        } else if(neighbours.top) {
+          cell.group.is_bottom = true;
+        } else if(neighbours.left) {
+          cell.group.is_right = true;
+        } else if(neighbours.right) {
+          cell.group.is_left = true;
+        }
+      } else {
+        if((neighbours.top && neighbours.bottom) || 
+        (neighbours.left && neighbours.right)) {
+          cell.group.is_full = true;
+        } else {
+          if(neighbours.left && neighbours.bottom) {
+            cell.group.is_top_right = true;
+          } else if(neighbours.right && neighbours.bottom) {
+            cell.group.is_top_left = true;
+          } else if(neighbours.left && neighbours.top) {
+            cell.group.is_bottom_right = true;
+          } else if(neighbours.right && neighbours.top) {
+            cell.group.is_bottom_left = true;
+          }
+        }
+      }
+    }
+
+    if(cell.is_in_solution || cell.is_end || cell.is_start){
+      delete_groups(cell);
+      const neighbours = get_solution_neighbours(cell);
       if(neighbours.cnt == 0) {
         cell.group.is_empty = true;
       } else if(neighbours.cnt >= 3) {
@@ -107,16 +141,16 @@ function clear_board() {
     return;
   }
   for (let i = 0; i < cells.length; i++) {
-    delete_wall(cells[i]);
-    cells[i].is_visited = false;
+    delete_groups(cells[i]);
+    cells[i].is_wall = false;
     cells[i].is_in_solution = false;
+    cells[i].is_visited = false;
     cells[i].is_heavy = false;
     cells[i].is_light = false;
   }
 }
 
-function delete_wall(cell) {
-  cell.is_wall = false;
+function delete_groups(cell) {
   cell.group.is_full = false;
   cell.group.is_empty = false;
   cell.group.is_top = false;
@@ -155,6 +189,39 @@ function get_wall_neighbours(cell) {
     result.cnt += 1;
   }
   if(right !== cell && right.is_wall) {
+    result.right = right; 
+    result.cnt += 1;
+  }
+  
+  return result;
+}
+
+function get_solution_neighbours(cell) {
+  const coord = convert_to_xy_coord(cell.id);
+  let result = {
+    top: null,
+    bottom: null,
+    left: null,
+    right: null,
+    cnt: 0,
+  };
+  const top = cells[convert_to_linear_coord(coord.x, coord.y - 1)];
+  const bottom = cells[convert_to_linear_coord(coord.x, coord.y + 1)];
+  const left = cells[convert_to_linear_coord(coord.x - 1, coord.y)];
+  const right = cells[convert_to_linear_coord(coord.x + 1, coord.y)];
+  if(top !== cell && (top.is_in_solution || top.is_start || top.is_end)) {
+    result.top = top; 
+    result.cnt += 1;
+  }
+  if(bottom !== cell && (bottom.is_in_solution || bottom.is_start || bottom.is_end)) {
+    result.bottom = bottom; 
+    result.cnt += 1;
+  }
+  if(left !== cell && (left.is_in_solution || left.is_start || left.is_end)) {
+    result.left = left; 
+    result.cnt += 1;
+  }
+  if(right !== cell && (right.is_in_solution || right.is_start || right.is_end)) {
     result.right = right; 
     result.cnt += 1;
   }
@@ -225,6 +292,9 @@ function init_running() {
   for (let i = 0; i < cells.length; i++) {
     cells[i].is_visited = false;
     cells[i].is_in_solution = false;
+    if(!cells[i].is_wall) {
+      delete_groups(cells[i]);
+    }
   }
 
   board.is_running = true;
@@ -340,6 +410,7 @@ async function bfs() {
     const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
     options.path_cost += add
     cells[current.cell_id].is_in_solution = true;
+    update_board_paths();
     current = current.pred;
   }
 
@@ -413,6 +484,7 @@ async function dijkstra() {
     const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
     options.path_cost += add;
     cells[current.cell_id].is_in_solution = true;
+    update_board_paths();
     current = current.pred;
   }
 
@@ -508,6 +580,7 @@ async function bellman_ford() {
     const add = (1 / weight_factor) * cell.is_light + weight_factor * cell.is_heavy + 1 * (!cell.is_light && !cell.is_heavy);
     options.path_cost += add;
     cell.is_in_solution = true;
+    update_board_paths();
     current = pred[current];
   }
 
@@ -578,7 +651,7 @@ var board = new Vue({
         if(!cell.is_wall) {
           delete_wall(cell);
         }
-        update_board_walls();
+        update_board_paths();
       }
     },
     clicked_cell: function(cell) {
@@ -625,7 +698,7 @@ var board = new Vue({
             cell.is_light = false;
             cell.is_heavy = false;
           }
-          update_board_walls();
+          update_board_paths();
         }
       }
     },
