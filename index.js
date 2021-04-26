@@ -361,7 +361,7 @@ async function bfs() {
   }
 
   options.algorithm = "BFS";
-  options.algorithm_link = "https://andcov.dev";
+  options.algorithm_link = "https://andcov.dev/posts/bfs";
 
   let queue = [{
     cell_id: start_index,
@@ -425,7 +425,7 @@ async function dijkstra() {
   }
 
   options.algorithm = "Dijkstra";
-  options.algorithm_link = "https://andcov.dev";
+  options.algorithm_link = "https://andcov.dev/posts/dijkstra";
 
   let heap = new MinHeap();
   heap.insert({
@@ -499,7 +499,7 @@ async function bellman_ford() {
   }
 
   options.algorithm = "Bellman Ford";
-  options.algorithm_link = "https://andcov.dev";
+  options.algorithm_link = "https://andcov.dev/posts/algo-vis";
   options.visited_percentage = 100;
 
   let dist_0 = create_array(cells.length);
@@ -649,7 +649,7 @@ var board = new Vue({
       if(this.is_placing_walls && !cell.is_start && !cell.is_end) {
         cell.is_wall = !cell.is_wall;
         if(!cell.is_wall) {
-          delete_wall(cell);
+          delete_groups(cell);
         }
         update_board_paths();
       }
@@ -659,6 +659,8 @@ var board = new Vue({
         return;
       }
       
+      delete_groups(cell);
+
       if(((this.is_changing_start && !cell.is_end) || (this.is_changing_end && !cell.is_start)) && !cell.is_wall) {
         for(let i = 0; i < cells.length; i++) {
           cells[i].is_in_solution = false;
@@ -677,7 +679,6 @@ var board = new Vue({
         }
         this.is_changing_start = false;
         this.is_changing_end = false;
-        update_board_paths();
       } else if (!cell.is_start && !cell.is_end && !this.is_changing_start && !this.is_changing_end) {
         if(this.is_placing_heavy) {
           if(!cell.is_wall){
@@ -696,14 +697,14 @@ var board = new Vue({
         } else {
           cell.is_wall = !cell.is_wall;
           if (!cell.is_wall) {
-            delete_wall(cell);
+            delete_groups(cell);
           } else {
             cell.is_light = false;
             cell.is_heavy = false;
           }
-          update_board_paths();
         }
       }
+      update_board_paths();
     },
     mouse_down: function() {
       if (!this.is_running && !this.is_changing_start && !this.is_changing_end){
